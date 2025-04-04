@@ -58,3 +58,7 @@ class UserLikeWithCategoryResponse(BaseModel):
     category: Optional[int] = None
     
     model_config = ConfigDict(from_attributes=True)
+
+class ChangeRoleRequest(BaseModel):
+    admin_username: str
+    new_role: Literal["user", "redactor", "admin"]

@@ -7,7 +7,7 @@ from typing import Optional
 
 from app.database import get_db, User, Post, UserLike, create_tables
 from app.schemas import UserCreate, UserResponse, PostCreate, PostResponse, LoginRequest, LoginResponse
-from app.schemas import UsernameRequest, UserLikeWithCategoryResponse, NewsCreate
+from app.schemas import UsernameRequest, UserLikeWithCategoryResponse, NewsCreate, ChangeRoleRequest
 from app.auth import authenticate_user, get_password_hash, get_user_by_username
 from app.recommendation import get_recommendations_for_user
 
@@ -48,6 +48,8 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(db_user)
     return db_user
+
+
 
 @app.post("/posts/", response_model=PostResponse)
 def create_post(post: PostCreate, db: Session = Depends(get_db)):
@@ -168,6 +170,33 @@ def get_recommendations(username: str, db: Session = Depends(get_db)):
         )
     
     return recommendations
+
+
+
+@app.post("/users/{username}/role")
+def change_user_role(username: str, role_data: ChangeRoleRequest, db: Session = Depends(get_db)):
+    admin_user = get_user_by_username(db, role_data.admin_username)
+    if admin_user.who_is_user != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only administrators can change user roles"
+        )
+    
+    target_user = get_user_by_username(db, username)
+    if target_user.id == admin_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Administrators cannot change their own role"
+        )
+    
+    target_user.who_is_user = role_data.new_role
+    db.commit()
+    
+    return {
+        "success": True,
+        "username": target_user.username,
+        "new_role": target_user.who_is_user
+    }
 
 if __name__ == "__main__":
     import uvicorn
