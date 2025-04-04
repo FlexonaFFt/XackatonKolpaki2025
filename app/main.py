@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException, status, Body
 from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import select, join
 from typing import Optional
@@ -12,6 +13,14 @@ from app.recommendation import get_recommendations_for_user
 
 app = FastAPI(title="Forum API")
 create_tables()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.post("/login", response_model=LoginResponse)
 async def login_json(login_data: LoginRequest, db: Session = Depends(get_db)):
