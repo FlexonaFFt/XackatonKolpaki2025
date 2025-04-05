@@ -8,21 +8,19 @@ from pathlib import Path
 import sys
 import os
 
-# Добавляем путь к корневой директории проекта, чтобы импортировать модули приложения
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from app.database import get_db, Post, create_tables
 
 BASE_URL = "https://наука.рф"
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
 }
-CHECK_INTERVAL = 600  # 30 минут в секундах
+CHECK_INTERVAL = 600  
 PROCESSED_FILE = "processed_urls.json"
-SCIENCE_CATEGORY = 1  # Категория для научных новостей
+SCIENCE_CATEGORY = 1  
 
 def load_processed_urls():
-    """Загружает список обработанных URL"""
     try:
         if Path(PROCESSED_FILE).exists():
             with open(PROCESSED_FILE, 'r', encoding='utf-8') as f:
@@ -32,7 +30,6 @@ def load_processed_urls():
     return set()
 
 def save_processed_urls(urls):
-    """Сохраняет новые URL в файл"""
     try:
         with open(PROCESSED_FILE, 'w', encoding='utf-8') as f:
             json.dump(list(urls), f, ensure_ascii=False, indent=4)
@@ -40,17 +37,14 @@ def save_processed_urls(urls):
         print(f"⚠️ Ошибка сохранения {PROCESSED_FILE}: {e}")
 
 def get_news_links():
-    """Получает актуальный список ссылок с главной страницы"""
     target_url = f"{BASE_URL}/news/"
     links = []
 
     try:
-        # Первый способ: попытка через прямой запрос
         response = requests.get(target_url, headers=HEADERS)
         response.raise_for_status()
         soup = BeautifulSoup(response.text, 'html.parser')
 
-        # Парсинг из JSON данных
         news_script = soup.find('u-news-page')
         if news_script:
             json_data = news_script.get(':initial-news-items')
@@ -59,7 +53,6 @@ def get_news_links():
                 links = [BASE_URL + item['url'] for item in news_items]
                 return links
 
-        # Второй способ: через Selenium
         options = Options()
         options.headless = True
         driver = webdriver.Chrome(options=options)
@@ -77,7 +70,6 @@ def get_news_links():
     return links
 
 def parse_article(url):
-    """Парсит содержимое статьи"""
     try:
         response = requests.get(url, headers=HEADERS, timeout=10)
         response.raise_for_status()
@@ -103,23 +95,20 @@ def parse_article(url):
         return None
 
 def save_to_database(article):
-    """Сохраняет статью в базу данных"""
     try:
         db = next(get_db())
         
-        # Проверяем, нет ли уже статьи с таким заголовком
         existing_post = db.query(Post).filter(Post.title == article['title']).first()
         if existing_post:
             print(f"Статья с заголовком '{article['title']}' уже существует в базе данных")
             return False
         
-        # Создаем новую запись в базе данных
         new_post = Post(
             title=article['title'],
             content=article['content'],
-            category=SCIENCE_CATEGORY,  # Категория "Наука"
-            type="news",  # Тип "news"
-            author_username=None  # Автор не указан для парсинговых новостей
+            category=SCIENCE_CATEGORY, 
+            type="news", 
+            author_username=None 
         )
         
         db.add(new_post)
@@ -134,27 +123,19 @@ def save_to_database(article):
         return False
 
 def update_news():
-    """Основная функция обновления новостей"""
     print(f"\n{time.strftime('%Y-%m-%d %H:%M:%S')} Начало проверки...")
-    
-    # Загрузка существующих данных
     processed_urls = load_processed_urls()
-
-    # Получение новых ссылок
     current_links = get_news_links()
     if not current_links:
         print("Нет ссылок для обработки")
         return
 
-    # Поиск новых URL
     new_urls = set(current_links) - processed_urls
     if not new_urls:
         print("Новых статей не найдено")
         return
 
     print(f"Найдено {len(new_urls)} новых статей!")
-    
-    # Парсинг новых статей
     new_articles_count = 0
     for url in new_urls:
         article = parse_article(url)
@@ -164,18 +145,15 @@ def update_news():
                 print(f"Добавлена статья: {article['title']}")
             processed_urls.add(url)
 
-    # Обновление обработанных URL
     if new_articles_count > 0:
         save_processed_urls(processed_urls)
         print(f"Успешно добавлено {new_articles_count} новых статей")
 
 def main():
-    """Основной цикл выполнения"""
     print("Запуск мониторинга новостей...")
     print(f"Проверка каждые {CHECK_INTERVAL//60} минут")
     
     try:
-        # Убедимся, что таблицы созданы
         create_tables()
         
         while True:
@@ -186,7 +164,6 @@ def main():
         print("\nМониторинг остановлен пользователем")
 
 if __name__ == "__main__":
-    # Инициализация файлов при первом запуске
     if not Path(PROCESSED_FILE).exists():
         save_processed_urls(set())
     

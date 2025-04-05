@@ -250,10 +250,7 @@ async def send_post_options(username: str, post_id: int, db: Session = Depends(g
             "link": get_bot_link()
         }
     
-    # Создаем сообщение с информацией о статье
     message = f"Статья: {post.title}\n\nВыберите формат для получения документа:"
-    
-    # Отправляем сообщение с кнопками выбора формата
     from app.telegram_bot import send_format_options
     await send_format_options(user.telegram_id, post_id, message)
     
