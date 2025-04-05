@@ -10,6 +10,11 @@ export const publicRoutes = [
     {
         path: AUTH_ROUTE,
         Component: Auth
+    },
+
+    {
+        path: MAIN_PAGE_ROUTE,
+        Component: MainPage
     }
 ]
 
@@ -22,13 +27,10 @@ export const adminRoutes = [
 
 export const privateRoutes = [
     {
-        path: MAIN_PAGE_ROUTE,
-        Component: MainPage
-    },
-    {
         path: PUBLISH_ROUTE,
         Component: PublishPage
     },
+    
     {
         path: POSTS_ROUTE,
         Component: ArticlePage

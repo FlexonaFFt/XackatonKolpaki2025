@@ -12,7 +12,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 BOT_TOKEN = "7944563656:AAEzlgyqgM5t-z0THqwQCJzP67YrYJ4_C7I"
-BOT_USERNAME = "hahaton"  
+BOT_USERNAME = "hahatonggg_bot"   
 
 pending_users = {}
 application = None

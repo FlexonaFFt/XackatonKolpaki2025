@@ -215,8 +215,10 @@ li:hover {
 
 .recommendationWrapper {
     display: flex;
-    gap: 10px;
+    justify-content: center;
+    gap: 7px;
     padding-bottom: 20px;
+    overflow-x: hidden;
 }
 
 .recommendationItem {
@@ -243,11 +245,21 @@ li:hover {
 
 @media (max-width: 768px) {
     .recommendationWrapper {
-        scroll-snap-type: x mandatory;
+        display: flex;
+        justify-content: start;
+        gap: 10px;
+        padding-bottom: 20px;
+        overflow-x: auto; /* Для прокрутки */
+        scroll-snap-type: x mandatory; /* Для плавной прокрутки */
     }
 
     .recommendationItem {
         scroll-snap-align: start;
         width: 160px; /* Уменьшаем размер на мобильных устройствах */
+    }
+
+    .recommendationItem p {
+        margin: 0;
+        margin-bottom: 5px;
     }
 }

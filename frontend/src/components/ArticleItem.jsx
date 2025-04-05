@@ -2,66 +2,90 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import cl from "../styles/ArticleItem.module.css";
 
+const CATEGORY_MAPPING = {
+    "Наука и образование": 1,
+    "Энергетика": 2,
+    "Просвещение и образование": 3,
+    "Фотоэлектроника": 4,
+    "Исследования в области медицины": 5,
+    "Наука и технологии": 6,
+    "Биология и сельское хозяйство": 7,
+    "Нанотехнологии": 8,
+    "Наука и туризм": 9,
+    "Нейробиология": 10,
+    "Климат и устойчивое развитие": 11,
+    "Фотоника и телеком": 12,
+    "Научно-популярные проекты": 13,
+};
+
 const ArticleItem = ({ searchQuery, selectedCategory, selectedSource }) => {
-    const [posts, setPosts] = useState([])
-    const [filteredPosts, setFilteredPosts] = useState([])
-    const [loading, setLoading] = useState(true) // Я добавил
-    const navigate = useNavigate()
+    const [posts, setPosts] = useState([]);
+    const [filteredPosts, setFilteredPosts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchPosts = async () => {
             try {
-                setLoading(true)
-                const response = await fetch("http://localhost:8000/posts/")
-                const data = await response.json()
-                setPosts(data)
-                setFilteredPosts(data)
+                setLoading(true);
+                const response = await fetch("http://localhost:8000/posts/");
+                const data = await response.json();
+                setPosts(data);
+                setFilteredPosts(data);
             } catch (error) {
-                console.error("Error fetching posts:", error)
+                console.error("Error fetching posts:", error);
             } finally {
-                setLoading(false)
+                setLoading(false);
             }
-        }
+        };
 
-        fetchPosts()
-    }, [])
+        fetchPosts();
+    }, []);
 
     useEffect(() => {
-        // Filter posts based on search query, category, and source
         let filtered = [...posts];
-        
-        // Apply search filter
+
+        // Поиск
         if (searchQuery) {
             const query = searchQuery.toLowerCase();
-            filtered = filtered.filter(post => 
-                post.title.toLowerCase().includes(query) || 
+            filtered = filtered.filter(post =>
+                post.title.toLowerCase().includes(query) ||
                 (post.content && post.content.toLowerCase().includes(query))
             );
         }
-        
-        // Apply category filter if not "Все"
-        if (selectedCategory && selectedCategory !== "Категория" && selectedCategory !== "Все") {
-            filtered = filtered.filter(post => post.category === selectedCategory);
+
+        // Категория
+        if (
+            selectedCategory &&
+            selectedCategory !== "Категория" &&
+            selectedCategory !== "Все"
+        ) {
+            const categoryId = CATEGORY_MAPPING[selectedCategory];
+            filtered = filtered.filter(post => post.category === categoryId);
         }
-        
-        // Apply source filter if not "Все"
-        if (selectedSource && selectedSource !== "Источник" && selectedSource !== "Все") {
+
+        // Источник
+        if (
+            selectedSource &&
+            selectedSource !== "Источник" &&
+            selectedSource !== "Все"
+        ) {
             filtered = filtered.filter(post => post.type === selectedSource);
         }
-        
+
         setFilteredPosts(filtered);
     }, [searchQuery, selectedCategory, selectedSource, posts]);
 
     const handleReadMore = (postId) => {
-        navigate(`/posts/${postId}`)
-    }
+        navigate(`/posts/${postId}`);
+    };
 
     if (loading) {
-        return <div className={cl.loading}>Загрузка...</div>
+        return <div className={cl.loading}>Загрузка...</div>;
     }
 
     if (filteredPosts.length === 0) {
-        return <div className={cl.noResults}>Нет результатов по вашему запросу</div>
+        return <div className={cl.noResults}>Нет результатов по вашему запросу</div>;
     }
 
     return (
@@ -75,11 +99,17 @@ const ArticleItem = ({ searchQuery, selectedCategory, selectedSource }) => {
                     />
                     <div className={cl.labels}>
                         <span className={cl.label}>{post.type}</span>
-                        <span className={cl.label}>{post.category}</span>
+                        <span className={cl.label}>
+                            {
+                                Object.entries(CATEGORY_MAPPING).find(
+                                    ([name, id]) => id === post.category
+                                )?.[0] || "Неизвестно"
+                            }
+                        </span>
                     </div>
                     <h3 className={cl.title}>{post.title}</h3>
-                    <button 
-                        onClick={() => handleReadMore(post.id)} 
+                    <button
+                        onClick={() => handleReadMore(post.id)}
                         className={cl.readMore}
                     >
                         Читать
@@ -87,7 +117,7 @@ const ArticleItem = ({ searchQuery, selectedCategory, selectedSource }) => {
                 </div>
             ))}
         </>
-    )
-}
+    );
+};
 
-export default ArticleItem
+export default ArticleItem;
