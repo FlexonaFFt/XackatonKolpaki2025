@@ -56,6 +56,7 @@ class LoginRequest(BaseModel):
 class UserLikeWithCategoryResponse(BaseModel):
     post_id: int
     category: Optional[int] = None
+    title: Optional[str] = None
     
     model_config = ConfigDict(from_attributes=True)
 
