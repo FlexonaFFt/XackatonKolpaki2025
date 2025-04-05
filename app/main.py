@@ -127,6 +127,24 @@ def create_post(post: PostCreate, db: Session = Depends(get_db)):
     post_data = post.dict() if hasattr(post, 'dict') else post.model_dump()
     post_data.pop('username')  
     
+    # Predict category using the model
+    if model is not None and vectorizer is not None and 'content' in post_data:
+        cleaned_content = preprocess_text(post_data['content'])
+        vectorized_content = vectorizer.transform([cleaned_content])
+        prediction = model.predict(vectorized_content)
+        predicted_category = prediction[0]
+        
+        if isinstance(predicted_category, str) and predicted_category in CATEGORY_MAPPING:
+            numerical_category = CATEGORY_MAPPING[predicted_category]
+        elif isinstance(predicted_category, (int, float)):
+            numerical_category = int(predicted_category)
+            if numerical_category < 1 or numerical_category > len(CATEGORY_MAPPING):
+                numerical_category = 1
+        else:
+            numerical_category = 1
+            
+        post_data['category'] = numerical_category
+    
     db_post = Post(
         **post_data,
         type="post",
@@ -320,8 +338,7 @@ def classify_post(post_id: int, db: Session = Depends(get_db)):
             detail="Classification model not available"
         )
     
-    post = db.query(Post).filter(Post.id == post_id).first()
-    
+    post = db.query(Post).filter(Post.id == post_id).first() 
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
     
@@ -398,7 +415,6 @@ def create_pending_post(post: PendingPostCreate, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    # Create a new pending post
     new_post = PendingPost(
         title=post.title,
         content=post.content,
@@ -427,12 +443,30 @@ def moderate_post(post_id: int, request: ModeratePostRequest, db: Session = Depe
         raise HTTPException(status_code=404, detail="Pending post not found")
     
     if request.approved:
+        # Predict category using the model
+        category = None
+        if model is not None and vectorizer is not None:
+            cleaned_content = preprocess_text(pending_post.content)
+            vectorized_content = vectorizer.transform([cleaned_content])
+            prediction = model.predict(vectorized_content)
+            predicted_category = prediction[0]
+            
+            if isinstance(predicted_category, str) and predicted_category in CATEGORY_MAPPING:
+                category = CATEGORY_MAPPING[predicted_category]
+            elif isinstance(predicted_category, (int, float)):
+                category = int(predicted_category)
+                if category < 1 or category > len(CATEGORY_MAPPING):
+                    category = 1
+            else:
+                category = 1
+        
         # Create a new post from the pending post
         new_post = Post(
             title=pending_post.title,
             content=pending_post.content,
             author_username=pending_post.author_username,
-            type="post"
+            type="post",
+            category=category
         )
         db.add(new_post)
     
