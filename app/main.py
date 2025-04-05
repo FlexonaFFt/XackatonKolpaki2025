@@ -41,7 +41,24 @@ else:
     model = joblib.load(model_path)
     vectorizer = joblib.load(vectorizer_path)
 
-# Text preprocessing function
+CATEGORY_MAPPING = {
+    "Наука и образование": 1,
+    "Энергетика": 2,
+    "Просвещение и образование": 3,
+    "Фотоэлектроника": 4,
+    "Исследования в области медицины": 5,
+    "Наука и технологии": 6,
+    "Биология и сельское хозяйство": 7,
+    "Нанотехнологии": 8,
+    "Наука и туризм": 9,
+    "Нейробиология": 10,
+    "Климат и устойчивое развитие": 11,
+    "Фотоника и телеком": 12,
+    "Научно-популярные проекты": 13
+}
+
+REVERSE_CATEGORY_MAPPING = {v: k for k, v in CATEGORY_MAPPING.items()}
+
 def preprocess_text(text):
     text = text.lower()
     text = text.translate(str.maketrans("", "", string.punctuation))
@@ -319,15 +336,38 @@ def classify_post(post_id: int, db: Session = Depends(get_db)):
     prediction = model.predict(vectorized_content)
     predicted_category = prediction[0]
     
-    # Update the post category in the database
+    # Convert text category to numerical if needed
+    if isinstance(predicted_category, str) and predicted_category in CATEGORY_MAPPING:
+        numerical_category = CATEGORY_MAPPING[predicted_category]
+    elif isinstance(predicted_category, (int, float)):
+        # If already numerical, ensure it's within our range
+        numerical_category = int(predicted_category)
+        if numerical_category < 1 or numerical_category > len(CATEGORY_MAPPING):
+            # Default to category 1 if out of range
+            numerical_category = 1
+    else:
+        # If unknown category, default to 1
+        numerical_category = 1
+    
+    # Get old category
     old_category = post.category
-    post.category = predicted_category
+    
+    # Convert old category to numerical if it's a string
+    if isinstance(old_category, str) and old_category in CATEGORY_MAPPING:
+        old_numerical = CATEGORY_MAPPING[old_category]
+    elif isinstance(old_category, (int, float)) and old_category is not None:
+        old_numerical = int(old_category)
+    else:
+        old_numerical = None
+    
+    # Update the post category in the database with numerical value
+    post.category = numerical_category
     db.commit()
     
     return {
         "post_id": post_id,
-        "old_category": old_category,
-        "new_category": predicted_category,
+        "old_category": old_numerical,
+        "new_category": numerical_category,
         "status": "updated"
     }
 
