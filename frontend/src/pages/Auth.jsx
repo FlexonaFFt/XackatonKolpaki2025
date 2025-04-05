@@ -77,6 +77,7 @@ const Auth = () => {
                 <div className={cl.loggedIn}>
                     <p>Вы авторизованы как <strong>{userData.username}</strong></p>
                     <p>Роль: {userData.who_is_user}</p>
+                    <button className={cl.loginButton} onClick={() => navigate(MAIN_PAGE_ROUTE)}>Продолжить</button>
                     <button className={cl.logoutButton} onClick={logout}>Выйти</button>
                 </div>
             ) : (

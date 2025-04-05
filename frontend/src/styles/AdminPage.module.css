@@ -107,7 +107,7 @@
 
 @media (max-width: 768px) {
     .container {
-        padding: 15px;
+        padding: 30px;
     }
     
     .title {
@@ -121,5 +121,11 @@
     .moderateButton {
         padding: 8px 15px;
         font-size: 14px;
+    }
+
+    .content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
     }
 }

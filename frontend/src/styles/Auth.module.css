@@ -15,14 +15,21 @@
     width: 320px;
 }
 
+@media (max-width: 767px) {
+    .authForm {
+        width: 220px;
+        padding: 1.5rem;
+    }
+}
+
 option {
     color: #ccc;
 }
 
 h2 {
-    margin: 0 0 2rem 0;
+    margin: 2rem 0 2rem 0;
     color: #FFFFFF;
-    font-size: 48px;
+    font-size: 24px;
 }
 
 select {
@@ -88,6 +95,23 @@ select {
     margin-top: 10px;
 }
 
+.loginButton {
+    padding: 10px 20px;
+    background: #52ae4a;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s ease;
+    margin-top: 10px;
+    margin-right: 5px;
+}
+
 .logoutButton:hover {
     background: #d73848;
+}
+
+.loginButton:hover {
+    background: #73ce6a;
 }

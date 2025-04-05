@@ -119,6 +119,9 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     db.refresh(db_user)
     return db_user
 
+@app.get("/categories/", response_model=List[str])
+def get_categories():
+    return list(CATEGORY_MAPPING.keys()) 
 
 
 @app.post("/posts/", response_model=PostResponse)
@@ -338,7 +341,8 @@ def classify_post(post_id: int, db: Session = Depends(get_db)):
             detail="Classification model not available"
         )
     
-    post = db.query(Post).filter(Post.id == post_id).first() 
+    post = db.query(Post).filter(Post.id == post_id).first()
+    
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
     
@@ -415,6 +419,7 @@ def create_pending_post(post: PendingPostCreate, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
+    # Create a new pending post
     new_post = PendingPost(
         title=post.title,
         content=post.content,
