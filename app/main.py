@@ -12,14 +12,19 @@ import string
 from sklearn.feature_extraction.text import CountVectorizer
 import joblib
 import os
+from datetime import datetime 
 
-from app.database import get_db, User, Post, UserLike, create_tables
+from typing import List, Optional
+
+from app.database import get_db, User, Post, UserLike, create_tables, PendingPost
 from app.schemas import UserCreate, UserResponse, PostCreate, PostResponse, LoginRequest, LoginResponse, TelegramLinkRequest
 from app.schemas import UsernameRequest, UserLikeWithCategoryResponse, NewsCreate, ChangeRoleRequest, TextClassificationRequest
+from app.schemas import PendingPostCreate, PendingPostResponse, ModeratePostRequest
 from app.auth import authenticate_user, get_password_hash, get_user_by_username
 from app.recommendation import get_recommendations_for_user
 from app.telegram_bot import get_bot_link, send_message_to_user, verify_and_link_user, setup_bot, start_bot, stop_bot, pending_users
 from app.parser_service import start_parser_service
+
 
 app = FastAPI(title="Forum API")
 create_tables()
@@ -384,6 +389,61 @@ def classify_text(request: TextClassificationRequest):
         "status": "success"
     }
 
+
+
+
+@app.post("/pending_posts/", response_model=PendingPostResponse)
+def create_pending_post(post: PendingPostCreate, db: Session = Depends(get_db)):
+    user = get_user_by_username(db, post.username)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Create a new pending post
+    new_post = PendingPost(
+        title=post.title,
+        content=post.content,
+        author_username=post.username,
+        created_at=datetime.utcnow()
+    )
+    
+    db.add(new_post)
+    db.commit()
+    db.refresh(new_post)
+    
+    return new_post
+
+@app.get("/pending_posts/", response_model=List[PendingPostResponse])
+def get_pending_posts(db: Session = Depends(get_db)):
+    return db.query(PendingPost).all()
+
+@app.post("/pending_posts/{post_id}/moderate")
+def moderate_post(post_id: int, request: ModeratePostRequest, db: Session = Depends(get_db)):
+    admin = get_user_by_username(db, request.admin_username)
+    if not admin:
+        raise HTTPException(status_code=404, detail="Admin user not found")
+    
+    pending_post = db.query(PendingPost).filter(PendingPost.id == post_id).first()
+    if not pending_post:
+        raise HTTPException(status_code=404, detail="Pending post not found")
+    
+    if request.approved:
+        # Create a new post from the pending post
+        new_post = Post(
+            title=pending_post.title,
+            content=pending_post.content,
+            author_username=pending_post.author_username,
+            type="post"
+        )
+        db.add(new_post)
+    
+    # Delete the pending post
+    db.delete(pending_post)
+    db.commit()
+    
+    return {
+        "success": True,
+        "message": "Post approved" if request.approved else "Post rejected"
+    }
 
 
 if __name__ == "__main__":

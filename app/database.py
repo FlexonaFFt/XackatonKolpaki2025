@@ -41,6 +41,21 @@ class UserLike(Base):
     user = relationship("User", back_populates="likes")
     post = relationship("Post", back_populates="likes")
 
+# Add this model if it doesn't exist
+class PendingPost(Base):
+    __tablename__ = "pending_posts"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False)
+    content = Column(String, nullable=False)
+    author_username = Column(String, ForeignKey("users.username"))
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    author = relationship("User", back_populates="pending_posts")
+
+# Добавьте это отношение в класс User
+User.pending_posts = relationship("PendingPost", back_populates="author")
+
 def get_db():
     db = SessionLocal()
     try:

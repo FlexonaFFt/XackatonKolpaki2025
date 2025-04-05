@@ -75,3 +75,22 @@ class TelegramStatusResponse(BaseModel):
 
 class TextClassificationRequest(BaseModel):
     text: str
+
+class PendingPostCreate(BaseModel):
+    title: str
+    content: str
+    username: str
+
+class PendingPostResponse(BaseModel):
+    id: int
+    title: str
+    content: str
+    author_username: str
+    created_at: Optional[datetime] = None
+
+    class Config:
+        orm_mode = True
+
+class ModeratePostRequest(BaseModel):
+    admin_username: str
+    approved: bool
