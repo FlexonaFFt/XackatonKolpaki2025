@@ -17,8 +17,9 @@ HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
 }
 CHECK_INTERVAL = 600  
-PROCESSED_FILE = "processed_urls.json"
+PROCESSED_FILE = "pars/processed_urls.json"
 SCIENCE_CATEGORY = 1  
+CLASSIFICATION_URL = "http://localhost:8000/classify_text"  
 
 def load_processed_urls():
     try:
@@ -94,6 +95,27 @@ def parse_article(url):
         print(f"⚠️ Ошибка парсинга статьи {url}: {e}")
         return None
 
+def classify_article_content(content):
+    """
+    Classify article content using the /classify_text endpoint
+    """
+    try:
+        response = requests.post(
+            CLASSIFICATION_URL,
+            json={"text": content},
+            headers={"Content-Type": "application/json"}
+        )
+        
+        if response.status_code == 200:
+            result = response.json()
+            return result.get("category_id", SCIENCE_CATEGORY)
+        else:
+            print(f"⚠️ Ошибка классификации: HTTP {response.status_code}")
+            return SCIENCE_CATEGORY
+    except Exception as e:
+        print(f"⚠️ Ошибка при обращении к сервису классификации: {e}")
+        return SCIENCE_CATEGORY
+
 def save_to_database(article):
     try:
         db = next(get_db())
@@ -103,17 +125,20 @@ def save_to_database(article):
             print(f"Статья с заголовком '{article['title']}' уже существует в базе данных")
             return False
         
+        # Classify the article content to get the appropriate category
+        category = classify_article_content(article['content'])
+        
         new_post = Post(
             title=article['title'],
             content=article['content'],
-            category=SCIENCE_CATEGORY, 
+            category=category,  # Use the classified category instead of default
             type="news", 
             author_username=None 
         )
         
         db.add(new_post)
         db.commit()
-        print(f"Статья '{article['title']}' успешно добавлена в базу данных")
+        print(f"Статья '{article['title']}' успешно добавлена в базу данных с категорией {category}")
         return True
         
     except Exception as e:

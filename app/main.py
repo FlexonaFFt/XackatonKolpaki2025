@@ -15,7 +15,7 @@ import os
 
 from app.database import get_db, User, Post, UserLike, create_tables
 from app.schemas import UserCreate, UserResponse, PostCreate, PostResponse, LoginRequest, LoginResponse, TelegramLinkRequest
-from app.schemas import UsernameRequest, UserLikeWithCategoryResponse, NewsCreate, ChangeRoleRequest
+from app.schemas import UsernameRequest, UserLikeWithCategoryResponse, NewsCreate, ChangeRoleRequest, TextClassificationRequest
 from app.auth import authenticate_user, get_password_hash, get_user_by_username
 from app.recommendation import get_recommendations_for_user
 from app.telegram_bot import get_bot_link, send_message_to_user, verify_and_link_user, setup_bot, start_bot, stop_bot, pending_users
@@ -310,6 +310,8 @@ async def send_post_options(username: str, post_id: int, db: Session = Depends(g
         "message": "Сообщение с выбором формата отправлено пользователю"
     }
 
+
+
 @app.post("/posts/{post_id}/classify", response_model=dict)
 def classify_post(post_id: int, db: Session = Depends(get_db)):
     # Check if model is loaded
@@ -370,6 +372,49 @@ def classify_post(post_id: int, db: Session = Depends(get_db)):
         "new_category": numerical_category,
         "status": "updated"
     }
+
+@app.post("/classify_text", response_model=dict)
+def classify_text(request: TextClassificationRequest):
+    # Check if model is loaded
+    if model is None or vectorizer is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Classification model not available"
+        )
+    
+    # Preprocess the text content
+    text_content = request.text
+    cleaned_content = preprocess_text(text_content)
+    
+    # Vectorize the content
+    vectorized_content = vectorizer.transform([cleaned_content])
+    
+    # Predict the category
+    prediction = model.predict(vectorized_content)
+    predicted_category = prediction[0]
+    
+    # Convert text category to numerical if needed
+    if isinstance(predicted_category, str) and predicted_category in CATEGORY_MAPPING:
+        numerical_category = CATEGORY_MAPPING[predicted_category]
+    elif isinstance(predicted_category, (int, float)):
+        # If already numerical, ensure it's within our range
+        numerical_category = int(predicted_category)
+        if numerical_category < 1 or numerical_category > len(CATEGORY_MAPPING):
+            # Default to category 1 if out of range
+            numerical_category = 1
+    else:
+        # If unknown category, default to 1
+        numerical_category = 1
+    
+    # Get category name from numerical value
+    category_name = REVERSE_CATEGORY_MAPPING.get(numerical_category, "Unknown")
+    
+    return {
+        "category_id": numerical_category,
+        "category_name": category_name,
+        "status": "success"
+    }
+
 
 
 if __name__ == "__main__":

@@ -72,3 +72,6 @@ class TelegramStatusResponse(BaseModel):
     is_linked: bool
     link: Optional[str] = None
     message: str
+
+class TextClassificationRequest(BaseModel):
+    text: str
