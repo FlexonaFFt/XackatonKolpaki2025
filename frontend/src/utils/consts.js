@@ -1,0 +1,5 @@
+export const AUTH_ROUTE = '/auth'
+export const MAIN_PAGE_ROUTE = '/main'
+export const PUBLISH_ROUTE = '/public'
+export const ADMIN_ROUTE = '/admin'
+export const POSTS_ROUTE = '/posts/:post_id'

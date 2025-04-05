@@ -1,0 +1,253 @@
+.container {
+    max-width: 1200px;
+    margin: auto;
+    text-align: center;
+    padding: 60px;
+    padding-top: 20px;
+    position: relative;
+}
+
+.image {
+    width: 100%;
+    border-radius: 10px;
+    height: auto;
+    max-height: 200px;
+    object-fit: cover;
+}
+
+.title {
+    font-size: 32px;
+    font-weight: bold;
+    color: #FFFFFF;
+}
+
+.searchWrapper {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.search {
+    width: 100%;
+    padding: 12px 40px;
+    font-size: 16px;
+    border-radius: 16px;
+    border: 1px solid #ccc;
+    background: #1D1D28;
+    outline: none;
+    color: white;
+}
+
+.searchIcon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    color: white;
+}
+
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.filterBtn {
+    background: transparent;
+    border: 1px solid #ccc;
+    padding: 10px 32px;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    min-width: 141px;
+    color: white;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdownMenu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    visibility: hidden;
+    min-width: 140px;
+}
+
+.dropdownMenu.show {
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
+}
+
+.dropdownItem {
+    padding: 10px;
+    font-size: 16px;
+    color: #555;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.dropdownItem:hover {
+    background: #f3f3f3;
+}
+
+.articles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    row-gap: 0;
+    justify-content: center;
+}
+
+@media (max-width: 1024px) {
+    .container {
+        padding: 40px;
+    }
+
+    .title {
+        font-size: 28px;
+    }
+
+    .search {
+        padding: 10px 35px;
+        font-size: 14px;
+    }
+
+    .filterBtn {
+        font-size: 14px;
+        padding: 8px 12px;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 20px;
+    }
+
+    .title {
+        font-size: 24px;
+    }
+
+    .searchWrapper {
+        width: 90%;
+    }
+
+    .search {
+        padding: 8px 30px;
+        font-size: 14px;
+    }
+
+    .filterBtn {
+        width: 100%;
+    }
+
+    .articles {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+}
+
+@media (max-width: 480px) {
+    .title {
+        font-size: 22px;
+    }
+
+    .searchWrapper {
+        width: 100%;
+    }
+
+    .search {
+        font-size: 13px;
+    }
+
+    .filterBtn {
+        font-size: 12px;
+        padding: 6px 10px;
+    }
+
+    .dropdownMenu {
+        min-width: 120px;
+    }
+
+    .dropdownItem {
+        font-size: 14px;
+    }
+
+    .articles {
+        grid-template-columns: 1fr;
+    }
+}
+
+.recommendationList {
+    display: flex;
+    color: #FFFFFF;
+}
+
+li {
+    padding: 10px;
+    color: white;
+    background: #1D1D28;
+    list-style-type: none;
+    margin: 10px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+li:hover {
+    background: #2e2e37;
+}
+
+.recommendationWrapper {
+    display: flex;
+    gap: 10px;
+    padding-bottom: 20px;
+}
+
+.recommendationItem {
+    flex-shrink: 0;
+    width: 176px;
+    border-radius: 10px;
+    cursor: pointer;
+    background: #1D1D28;
+    padding: 10px;
+    color: white;
+    transition: background 0.3s ease;
+}
+
+.recommendationItem:hover {
+    background: #2e2e37;
+}
+
+.recommendationItem img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+@media (max-width: 768px) {
+    .recommendationWrapper {
+        scroll-snap-type: x mandatory;
+    }
+
+    .recommendationItem {
+        scroll-snap-align: start;
+        width: 160px; /* Уменьшаем размер на мобильных устройствах */
+    }
+}

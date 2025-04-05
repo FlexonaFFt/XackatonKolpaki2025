@@ -1,0 +1,93 @@
+.authContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: #0D0D0D;
+}
+
+.authForm {
+    background: #1D1D28;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 320px;
+}
+
+option {
+    color: #ccc;
+}
+
+h2 {
+    margin: 0 0 2rem 0;
+    color: #FFFFFF;
+    font-size: 48px;
+}
+
+select {
+    width: 100% !important;
+}
+
+.inputField {
+    width: 93%;
+    padding: 10px;
+    margin: 8px 0;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 16px;
+    background: #1D1D28;
+    color: white;
+}
+
+.authButton {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    background: #3E8AF1;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s ease;
+}
+
+.authButton:hover {
+    background: #5b9af2;
+}
+
+.switchText {
+    margin-top: 10px;
+    color: #3E8AF1;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.switchText:hover {
+    text-decoration: underline;
+}
+
+.loggedIn {
+    text-align: center;
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.logoutButton {
+    padding: 10px 20px;
+    background: #ff4b5c;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s ease;
+    margin-top: 10px;
+}
+
+.logoutButton:hover {
+    background: #d73848;
+}

@@ -1,0 +1,125 @@
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.title {
+    font-size: 32px;
+    font-weight: bold;
+    color: #FFFFFF;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.content {
+    margin-top: 20px;
+}
+
+.content h2 {
+    font-size: 24px;
+    color: #FFFFFF;
+    margin-bottom: 20px;
+}
+
+.loading, .emptyMessage {
+    text-align: center;
+    color: #FFFFFF;
+    font-size: 18px;
+    margin: 50px 0;
+}
+
+.error {
+    color: #ff6b6b;
+    text-align: center;
+    margin: 20px 0;
+    padding: 10px;
+    background: rgba(255, 107, 107, 0.1);
+    border-radius: 5px;
+}
+
+.postsList {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.postCard {
+    background: #1D1D28;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.postTitle {
+    font-size: 24px;
+    font-weight: bold;
+    color: #FFFFFF;
+    margin-bottom: 10px;
+}
+
+.postAuthor, .postDate {
+    font-size: 14px;
+    color: #aaa;
+    margin-bottom: 5px;
+}
+
+.postContent {
+    color: #FFFFFF;
+    margin: 20px 0;
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+.moderationButtons {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.moderateButton {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    flex: 1;
+}
+
+.approveButton {
+    background: #4CAF50;
+    color: white;
+}
+
+.approveButton:hover {
+    background: #3e8e41;
+}
+
+.rejectButton {
+    background: #f44336;
+    color: white;
+}
+
+.rejectButton:hover {
+    background: #d32f2f;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+    
+    .title {
+        font-size: 24px;
+    }
+    
+    .postTitle {
+        font-size: 20px;
+    }
+    
+    .moderateButton {
+        padding: 8px 15px;
+        font-size: 14px;
+    }
+}

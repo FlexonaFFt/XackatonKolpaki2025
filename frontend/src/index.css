@@ -1,0 +1,12 @@
+@font-face {
+    font-family: "sfpro";
+    src: url("/src/UI/font/SF-Pro-Display-Light.otf");
+}
+
+body {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	background: #0D0D0D;
+	font-family: "sfpro";
+}
