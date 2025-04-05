@@ -234,6 +234,33 @@ async def check_telegram_status(username: str, db: Session = Depends(get_db)):
         "message": "Telegram бот успешно подключен. Сообщение отправлено."
     }
 
+@app.post("/users/{username}/send_post/{post_id}")
+async def send_post_options(username: str, post_id: int, db: Session = Depends(get_db)):
+    user = get_user_by_username(db, username)
+    post = db.query(Post).filter(Post.id == post_id).first()
+    
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+    
+    if not user.telegram_id:
+        return {
+            "success": False,
+            "message": "Пользователь не подключил Telegram бота",
+            "link": get_bot_link()
+        }
+    
+    # Создаем сообщение с информацией о статье
+    message = f"Статья: {post.title}\n\nВыберите формат для получения документа:"
+    
+    # Отправляем сообщение с кнопками выбора формата
+    from app.telegram_bot import send_format_options
+    await send_format_options(user.telegram_id, post_id, message)
+    
+    return {
+        "success": True,
+        "message": "Сообщение с выбором формата отправлено пользователю"
+    }
+
 
 if __name__ == "__main__":
     import uvicorn

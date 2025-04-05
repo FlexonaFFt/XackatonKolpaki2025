@@ -1,9 +1,10 @@
 import logging
 import asyncio
 from telegram import Update, Bot
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes, CallbackQueryHandler
 from sqlalchemy.orm import Session
 from app.database import User
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
 # Configure logging
 logging.basicConfig(
@@ -24,10 +25,27 @@ application = None
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a message when the command /start is issued."""
-    await update.message.reply_text(
-        "Привет! Я бот для интеграции с вашим аккаунтом. "
-        "Пожалуйста, отправьте мне ваш username с сайта, чтобы я мог связать ваши аккаунты."
-    )
+    user_id = update.effective_user.id
+    
+    # Проверяем, связан ли пользователь с аккаунтом
+    from app.database import get_db, User
+    db = next(get_db())
+    
+    # Ищем пользователя с таким telegram_id
+    user = db.query(User).filter(User.telegram_id == str(user_id)).first()
+    
+    if user:
+        # Пользователь уже связан с аккаунтом
+        await update.message.reply_text(
+            f"Вы уже авторизованы как {user.username}! "
+            f"Вы будете получать уведомления через этого бота."
+        )
+    else:
+        # Пользователь еще не связан с аккаунтом
+        await update.message.reply_text(
+            "Привет! Я бот для интеграции с вашим аккаунтом. "
+            "Пожалуйста, отправьте мне ваш username с сайта, чтобы я мог связать ваши аккаунты."
+        )
 
 async def handle_username(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle username messages and automatically link accounts."""
@@ -69,6 +87,87 @@ async def send_message_to_user(telegram_id: str, message: str):
         logger.error(f"Error sending message to {telegram_id}: {e}")
         return False
 
+async def send_format_options(telegram_id: str, post_id: int, message: str):
+    """Send a message with format options buttons."""
+    try:
+        bot = Bot(token=BOT_TOKEN)
+        
+        # Создаем клавиатуру с кнопками выбора формата
+        keyboard = [
+            [
+                InlineKeyboardButton("PDF", callback_data=f"format_pdf_{post_id}"),
+                InlineKeyboardButton("DOCX", callback_data=f"format_docx_{post_id}")
+            ]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        # Отправляем сообщение с клавиатурой
+        await bot.send_message(
+            chat_id=telegram_id,
+            text=message,
+            reply_markup=reply_markup
+        )
+        return True
+    except Exception as e:
+        logger.error(f"Error sending format options to {telegram_id}: {e}")
+        return False
+
+async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle callback queries from inline keyboards."""
+    query = update.callback_query
+    await query.answer()
+    
+    # Получаем данные из callback_data
+    callback_data = query.data
+    
+    if callback_data.startswith("format_"):
+        # Разбираем данные формата и ID поста
+        parts = callback_data.split("_")
+        if len(parts) == 3:
+            format_type = parts[1]  # pdf или docx
+            post_id = int(parts[2])
+            
+            # Сообщаем пользователю, что документ готовится
+            await query.edit_message_text(
+                text=f"Подготовка документа в формате {format_type.upper()}... Пожалуйста, подождите."
+            )
+            
+            # Здесь будет логика создания и отправки документа
+            # Пока просто отправляем сообщение о том, что функция в разработке
+            await send_document_to_user(query.from_user.id, post_id, format_type)
+
+async def send_document_to_user(telegram_id, post_id, format_type):
+    """Send document to user based on post_id and format_type."""
+    try:
+        bot = Bot(token=BOT_TOKEN)
+        
+        # Получаем данные поста из базы данных
+        from app.database import get_db, Post
+        db = next(get_db())
+        post = db.query(Post).filter(Post.id == post_id).first()
+        
+        if not post:
+            await bot.send_message(
+                chat_id=telegram_id,
+                text="Извините, пост не найден."
+            )
+            return False
+        
+        # Здесь будет логика создания документа в нужном формате
+        # Пока просто отправляем текстовое сообщение с содержимым поста
+        
+        message = f"Заголовок: {post.title}\n\n{post.content}\n\n"
+        message += f"(Документ в формате {format_type.upper()} будет доступен в следующей версии приложения)"
+        
+        await bot.send_message(
+            chat_id=telegram_id,
+            text=message
+        )
+        return True
+    except Exception as e:
+        logger.error(f"Error sending document to {telegram_id}: {e}")
+        return False
+
 def verify_and_link_user(db: Session, username: str, telegram_id: str):
     """Verify and link a user's account with their Telegram ID."""
     user = db.query(User).filter(User.username == username).first()
@@ -90,6 +189,7 @@ async def setup_bot():
     # Add handlers
     application.add_handler(CommandHandler("start", start))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_username))
+    application.add_handler(CallbackQueryHandler(handle_callback_query))  # Добавляем обработчик callback_query
     
     return application
 
