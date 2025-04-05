@@ -4,6 +4,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import select, join
 from typing import Optional
+import pandas as pd
+import nltk
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+import string
+from sklearn.feature_extraction.text import CountVectorizer
+import joblib
+import os
 
 from app.database import get_db, User, Post, UserLike, create_tables
 from app.schemas import UserCreate, UserResponse, PostCreate, PostResponse, LoginRequest, LoginResponse, TelegramLinkRequest
@@ -15,6 +23,32 @@ from app.parser_service import start_parser_service
 
 app = FastAPI(title="Forum API")
 create_tables()
+
+# Download required NLTK resources
+nltk.download('stopwords')
+nltk.download('punkt')
+
+# Load the model and vectorizer
+model_path = os.path.join(os.path.dirname(__file__), 'analyzer/model.pkl')
+vectorizer_path = os.path.join(os.path.dirname(__file__), 'analyzer/vectorizer.pkl')
+
+# Check if model files exist
+if not os.path.exists(model_path) or not os.path.exists(vectorizer_path):
+    print("Warning: Model files not found in analyzer folder. Classification route will not work.")
+    model = None
+    vectorizer = None
+else:
+    model = joblib.load(model_path)
+    vectorizer = joblib.load(vectorizer_path)
+
+# Text preprocessing function
+def preprocess_text(text):
+    text = text.lower()
+    text = text.translate(str.maketrans("", "", string.punctuation))
+    tokens = word_tokenize(text)
+    stop_words = set(stopwords.words('russian'))
+    tokens = [word for word in tokens if word not in stop_words]
+    return " ".join(tokens)
 
 @app.on_event("startup")
 async def startup_event():
@@ -257,6 +291,44 @@ async def send_post_options(username: str, post_id: int, db: Session = Depends(g
     return {
         "success": True,
         "message": "Сообщение с выбором формата отправлено пользователю"
+    }
+
+@app.post("/posts/{post_id}/classify", response_model=dict)
+def classify_post(post_id: int, db: Session = Depends(get_db)):
+    # Check if model is loaded
+    if model is None or vectorizer is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Classification model not available"
+        )
+    
+    # Get post from database
+    post = db.query(Post).filter(Post.id == post_id).first()
+    
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+    
+    # Preprocess the post content
+    post_content = post.content
+    cleaned_content = preprocess_text(post_content)
+    
+    # Vectorize the content
+    vectorized_content = vectorizer.transform([cleaned_content])
+    
+    # Predict the category
+    prediction = model.predict(vectorized_content)
+    predicted_category = prediction[0]
+    
+    # Update the post category in the database
+    old_category = post.category
+    post.category = predicted_category
+    db.commit()
+    
+    return {
+        "post_id": post_id,
+        "old_category": old_category,
+        "new_category": predicted_category,
+        "status": "updated"
     }
 
 
