@@ -153,19 +153,99 @@ async def send_document_to_user(telegram_id, post_id, format_type):
             )
             return False
         
-        # Здесь будет логика создания документа в нужном формате
-        # Пока просто отправляем текстовое сообщение с содержимым поста
+        # Создаем временный файл для документа
+        import tempfile
+        import os
         
-        message = f"Заголовок: {post.title}\n\n{post.content}\n\n"
-        message += f"(Документ в формате {format_type.upper()} будет доступен в следующей версии приложения)"
+        # Генерируем имя файла на основе заголовка поста
+        safe_title = "".join(c for c in post.title if c.isalnum() or c in [' ', '_']).strip()
+        safe_title = safe_title.replace(' ', '_')
         
-        await bot.send_message(
-            chat_id=telegram_id,
-            text=message
-        )
+        if format_type == "pdf":
+            # Создаем PDF документ
+            from reportlab.lib.pagesizes import letter
+            from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+            from reportlab.lib.styles import getSampleStyleSheet
+            
+            temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
+            temp_file.close()
+            
+            doc = SimpleDocTemplate(temp_file.name, pagesize=letter)
+            styles = getSampleStyleSheet()
+            
+            # Создаем содержимое документа
+            content = []
+            
+            # Добавляем заголовок
+            title_style = styles['Title']
+            content.append(Paragraph(post.title, title_style))
+            content.append(Spacer(1, 12))
+            
+            # Добавляем основной текст
+            normal_style = styles['Normal']
+            for paragraph in post.content.split('\n\n'):
+                if paragraph.strip():
+                    content.append(Paragraph(paragraph, normal_style))
+                    content.append(Spacer(1, 6))
+            
+            # Создаем PDF
+            doc.build(content)
+            
+            # Отправляем файл
+            with open(temp_file.name, 'rb') as file:
+                await bot.send_document(
+                    chat_id=telegram_id,
+                    document=file,
+                    filename=f"{safe_title}.pdf",
+                    caption=f"Документ: {post.title}"
+                )
+            
+            # Удаляем временный файл
+            os.unlink(temp_file.name)
+            
+        elif format_type == "docx":
+            # Создаем DOCX документ
+            from docx import Document
+            
+            temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.docx')
+            temp_file.close()
+            
+            doc = Document()
+            
+            # Добавляем заголовок
+            doc.add_heading(post.title, 0)
+            
+            # Добавляем основной текст
+            for paragraph in post.content.split('\n\n'):
+                if paragraph.strip():
+                    doc.add_paragraph(paragraph)
+            
+            # Сохраняем документ
+            doc.save(temp_file.name)
+            
+            # Отправляем файл
+            with open(temp_file.name, 'rb') as file:
+                await bot.send_document(
+                    chat_id=telegram_id,
+                    document=file,
+                    filename=f"{safe_title}.docx",
+                    caption=f"Документ: {post.title}"
+                )
+            
+            # Удаляем временный файл
+            os.unlink(temp_file.name)
+        
         return True
     except Exception as e:
         logger.error(f"Error sending document to {telegram_id}: {e}")
+        # Отправляем сообщение об ошибке пользователю
+        try:
+            await bot.send_message(
+                chat_id=telegram_id,
+                text=f"Произошла ошибка при создании документа: {str(e)}"
+            )
+        except:
+            pass
         return False
 
 def verify_and_link_user(db: Session, username: str, telegram_id: str):
