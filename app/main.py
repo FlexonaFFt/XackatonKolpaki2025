@@ -11,7 +11,7 @@ from app.schemas import UsernameRequest, UserLikeWithCategoryResponse, NewsCreat
 from app.auth import authenticate_user, get_password_hash, get_user_by_username
 from app.recommendation import get_recommendations_for_user
 from app.telegram_bot import get_bot_link, send_message_to_user, verify_and_link_user, setup_bot, start_bot, stop_bot, pending_users
-
+from app.parser_service import start_parser_service
 
 app = FastAPI(title="Forum API")
 create_tables()
@@ -19,6 +19,7 @@ create_tables()
 @app.on_event("startup")
 async def startup_event():
     await start_bot()
+    start_parser_service()
 
 @app.on_event("shutdown")
 async def shutdown_event():
