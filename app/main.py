@@ -23,16 +23,12 @@ from app.parser_service import start_parser_service
 
 app = FastAPI(title="Forum API")
 create_tables()
-
-# Download required NLTK resources
 nltk.download('stopwords')
 nltk.download('punkt')
 
-# Load the model and vectorizer
 model_path = os.path.join(os.path.dirname(__file__), 'analyzer/model.pkl')
 vectorizer_path = os.path.join(os.path.dirname(__file__), 'analyzer/vectorizer.pkl')
 
-# Check if model files exist
 if not os.path.exists(model_path) or not os.path.exists(vectorizer_path):
     print("Warning: Model files not found in analyzer folder. Classification route will not work.")
     model = None
@@ -321,40 +317,28 @@ def classify_post(post_id: int, db: Session = Depends(get_db)):
             detail="Classification model not available"
         )
     
-    # Get post from database
     post = db.query(Post).filter(Post.id == post_id).first()
     
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
     
-    # Preprocess the post content
     post_content = post.content
     cleaned_content = preprocess_text(post_content)
-    
-    # Vectorize the content
     vectorized_content = vectorizer.transform([cleaned_content])
     
-    # Predict the category
     prediction = model.predict(vectorized_content)
     predicted_category = prediction[0]
     
-    # Convert text category to numerical if needed
     if isinstance(predicted_category, str) and predicted_category in CATEGORY_MAPPING:
         numerical_category = CATEGORY_MAPPING[predicted_category]
     elif isinstance(predicted_category, (int, float)):
-        # If already numerical, ensure it's within our range
         numerical_category = int(predicted_category)
         if numerical_category < 1 or numerical_category > len(CATEGORY_MAPPING):
-            # Default to category 1 if out of range
             numerical_category = 1
     else:
-        # If unknown category, default to 1
         numerical_category = 1
-    
-    # Get old category
     old_category = post.category
     
-    # Convert old category to numerical if it's a string
     if isinstance(old_category, str) and old_category in CATEGORY_MAPPING:
         old_numerical = CATEGORY_MAPPING[old_category]
     elif isinstance(old_category, (int, float)) and old_category is not None:
@@ -362,7 +346,6 @@ def classify_post(post_id: int, db: Session = Depends(get_db)):
     else:
         old_numerical = None
     
-    # Update the post category in the database with numerical value
     post.category = numerical_category
     db.commit()
     
@@ -375,38 +358,26 @@ def classify_post(post_id: int, db: Session = Depends(get_db)):
 
 @app.post("/classify_text", response_model=dict)
 def classify_text(request: TextClassificationRequest):
-    # Check if model is loaded
     if model is None or vectorizer is None:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Classification model not available"
         )
     
-    # Preprocess the text content
     text_content = request.text
     cleaned_content = preprocess_text(text_content)
-    
-    # Vectorize the content
     vectorized_content = vectorizer.transform([cleaned_content])
-    
-    # Predict the category
     prediction = model.predict(vectorized_content)
     predicted_category = prediction[0]
     
-    # Convert text category to numerical if needed
     if isinstance(predicted_category, str) and predicted_category in CATEGORY_MAPPING:
         numerical_category = CATEGORY_MAPPING[predicted_category]
     elif isinstance(predicted_category, (int, float)):
-        # If already numerical, ensure it's within our range
         numerical_category = int(predicted_category)
         if numerical_category < 1 or numerical_category > len(CATEGORY_MAPPING):
-            # Default to category 1 if out of range
             numerical_category = 1
     else:
-        # If unknown category, default to 1
         numerical_category = 1
-    
-    # Get category name from numerical value
     category_name = REVERSE_CATEGORY_MAPPING.get(numerical_category, "Unknown")
     
     return {

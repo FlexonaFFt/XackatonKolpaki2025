@@ -125,13 +125,12 @@ def save_to_database(article):
             print(f"Статья с заголовком '{article['title']}' уже существует в базе данных")
             return False
         
-        # Classify the article content to get the appropriate category
         category = classify_article_content(article['content'])
         
         new_post = Post(
             title=article['title'],
             content=article['content'],
-            category=category,  # Use the classified category instead of default
+            category=category,  
             type="news", 
             author_username=None 
         )
