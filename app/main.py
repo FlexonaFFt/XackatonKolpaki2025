@@ -275,8 +275,6 @@ async def check_telegram_status(username: str, db: Session = Depends(get_db)):
             "message": "Пожалуйста, перейдите по ссылке и подключите Telegram бота"
         }
     
-    await send_message_to_user(user.telegram_id, "Привет!")
-    
     return {
         "is_linked": True,
         "message": "Telegram бот успешно подключен. Сообщение отправлено."
