@@ -62,3 +62,12 @@ class UserLikeWithCategoryResponse(BaseModel):
 class ChangeRoleRequest(BaseModel):
     admin_username: str
     new_role: Literal["user", "redactor", "admin"]
+
+class TelegramLinkRequest(BaseModel):
+    username: str
+    telegram_id: str
+
+class TelegramStatusResponse(BaseModel):
+    is_linked: bool
+    link: Optional[str] = None
+    message: str

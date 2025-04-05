@@ -15,6 +15,7 @@ class User(Base):
     username = Column(String, unique=True, nullable=False)
     password = Column(String, nullable=False)
     who_is_user = Column(String, default="user", nullable=False)
+    telegram_id = Column(String, nullable=True)  
     
     likes = relationship("UserLike", back_populates="user")
 

@@ -6,13 +6,23 @@ from sqlalchemy import select, join
 from typing import Optional
 
 from app.database import get_db, User, Post, UserLike, create_tables
-from app.schemas import UserCreate, UserResponse, PostCreate, PostResponse, LoginRequest, LoginResponse
+from app.schemas import UserCreate, UserResponse, PostCreate, PostResponse, LoginRequest, LoginResponse, TelegramLinkRequest
 from app.schemas import UsernameRequest, UserLikeWithCategoryResponse, NewsCreate, ChangeRoleRequest
 from app.auth import authenticate_user, get_password_hash, get_user_by_username
 from app.recommendation import get_recommendations_for_user
+from app.telegram_bot import get_bot_link, send_message_to_user, verify_and_link_user, setup_bot, start_bot, stop_bot, pending_users
+
 
 app = FastAPI(title="Forum API")
 create_tables()
+
+@app.on_event("startup")
+async def startup_event():
+    await start_bot()
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    await stop_bot()
 
 app.add_middleware(
     CORSMiddleware,
@@ -21,6 +31,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
 
 @app.post("/login", response_model=LoginResponse)
 async def login_json(login_data: LoginRequest, db: Session = Depends(get_db)):
@@ -43,7 +55,12 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     if db_user:
         raise HTTPException(status_code=400, detail="Username already registered")
     hashed_password = get_password_hash(user.password) 
-    db_user = User(username=user.username, password=hashed_password, who_is_user=user.who_is_user)
+    db_user = User(
+        username=user.username, 
+        password=hashed_password, 
+        who_is_user=user.who_is_user,
+        telegram_id=None 
+    )
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
@@ -197,6 +214,26 @@ def change_user_role(username: str, role_data: ChangeRoleRequest, db: Session = 
         "username": target_user.username,
         "new_role": target_user.who_is_user
     }
+
+
+@app.get("/users/{username}/telegram")
+async def check_telegram_status(username: str, db: Session = Depends(get_db)):
+    user = get_user_by_username(db, username)
+    
+    if not user.telegram_id:
+        return {
+            "is_linked": False,
+            "link": get_bot_link(),
+            "message": "Пожалуйста, перейдите по ссылке и подключите Telegram бота"
+        }
+    
+    await send_message_to_user(user.telegram_id, "Привет!")
+    
+    return {
+        "is_linked": True,
+        "message": "Telegram бот успешно подключен. Сообщение отправлено."
+    }
+
 
 if __name__ == "__main__":
     import uvicorn
