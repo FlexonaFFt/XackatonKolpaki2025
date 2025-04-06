@@ -97,7 +97,7 @@ const ArticlePage = () => {
 
     const handleUnlike = async () => {
         try {
-            const response = await fetch(`http://localhost:8000/posts/${post_id}/unlike`, {
+            const response = await fetch(`http://109.73.202.54:8000/posts/${post_id}/unlike`, {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username }),
@@ -124,7 +124,7 @@ const ArticlePage = () => {
         setTelegramLoading(true);
         try {
             // First check if user has Telegram connected
-            const statusResponse = await fetch(`http://localhost:8000/users/${username}/telegram`);
+            const statusResponse = await fetch(`http://109.73.202.54:8000/users/${username}/telegram`);
             const statusData = await statusResponse.json();
             
             if (!statusData.is_linked) {
@@ -134,7 +134,7 @@ const ArticlePage = () => {
             } else {
                 // If linked, send post
                 const sendResponse = await fetch(
-                    `http://localhost:8000/users/${username}/send_post/${post_id}`,
+                    `http://109.73.202.54:8000/users/${username}/send_post/${post_id}`,
                     {
                         method: "POST",
                         headers: { "Content-Type": "application/json" }
