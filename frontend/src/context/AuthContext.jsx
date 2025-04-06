@@ -11,7 +11,7 @@ export const AuthProvider = ({children}) => {
     useEffect(() => {
         const token = localStorage.getItem("token")
         if (token) {
-            fetch("http://localhost:8000/users/me", {
+            fetch("http://109.73.202.54:8000/users/me", {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },

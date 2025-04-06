@@ -28,7 +28,7 @@ const ArticleItem = ({ searchQuery, selectedCategory, selectedSource }) => {
         const fetchPosts = async () => {
             try {
                 setLoading(true);
-                const response = await fetch("http://localhost:8000/posts/");
+                const response = await fetch("http://109.73.202.54:8000/posts/");
                 const data = await response.json();
                 setPosts(data);
                 setFilteredPosts(data);

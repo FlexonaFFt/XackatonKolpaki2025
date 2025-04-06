@@ -24,7 +24,7 @@ const AdminPage = () => {
     const fetchPendingPosts = async () => {
         try {
             console.log("Fetching pending posts...");
-            const response = await fetch("http://localhost:8000/pending_posts/");
+            const response = await fetch("http://109.73.202.54:8000/pending_posts/");
             
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
@@ -44,7 +44,7 @@ const AdminPage = () => {
     
     const handleModerate = async (postId, approved) => {
         try {
-            const response = await fetch(`http://localhost:8000/pending_posts/${postId}/moderate`, {
+            const response = await fetch(`http://109.73.202.54:8000/pending_posts/${postId}/moderate`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

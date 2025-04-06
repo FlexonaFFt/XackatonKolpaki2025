@@ -35,7 +35,7 @@ const PublishPage = () => {
             console.log("Отправка данных на модерацию:", postData);
             
             // Use the pending_posts endpoint instead of posts
-            const response = await fetch("http://localhost:8000/pending_posts/", {
+            const response = await fetch("http://109.73.202.54:8000/pending_posts/", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

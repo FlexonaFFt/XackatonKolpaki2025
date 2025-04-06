@@ -20,7 +20,7 @@ const ArticlePage = () => {
     useEffect(() => {
         const fetchPost = async () => {
             try {
-                const response = await fetch(`http://localhost:8000/posts/${post_id}`);
+                const response = await fetch(`http://109.73.202.54:8000/posts/${post_id}`);
                 if (!response.ok) throw new Error("Post not found");
                 const data = await response.json();
                 setPost(data);
@@ -32,7 +32,7 @@ const ArticlePage = () => {
         const fetchRecommendations = async () => {
             if (!username) return;
             try {
-                const response = await fetch(`http://localhost:8000/recommendations/${username}`);
+                const response = await fetch(`http://109.73.202.54:8000/recommendations/${username}`);
                 if (!response.ok) throw new Error("Failed to fetch recommendations");
                 const data = await response.json();
                 setRecommendations(data);
@@ -44,7 +44,7 @@ const ArticlePage = () => {
         const checkLiked = async () => {
             if (!username) return;
             try {
-                const response = await fetch(`http://localhost:8000/users/${username}/likes`);
+                const response = await fetch(`http://109.73.202.54:8000/users/${username}/likes`);
                 const data = await response.json();
                 if (Array.isArray(data)) {
                     const likedPostIds = data.map((like) => like.post_id);
@@ -61,7 +61,7 @@ const ArticlePage = () => {
         const checkTelegramStatus = async () => {
             if (!username) return;
             try {
-                const response = await fetch(`http://localhost:8000/users/${username}/telegram`);
+                const response = await fetch(`http://109.73.202.54:8000/users/${username}/telegram`);
                 const data = await response.json();
                 setTelegramStatus(data);
             } catch (error) {
@@ -77,7 +77,7 @@ const ArticlePage = () => {
 
     const handleLike = async () => {
         try {
-            const response = await fetch(`http://localhost:8000/posts/${post_id}/like`, {
+            const response = await fetch(`http://109.73.202.54:8000/posts/${post_id}/like`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username }),

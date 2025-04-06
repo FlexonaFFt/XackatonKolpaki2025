@@ -4,7 +4,7 @@ import {useNavigate} from 'react-router-dom'
 import { MAIN_PAGE_ROUTE } from '../utils/consts'
 import { useAuth } from "../context/AuthContext";
 
-const API_URL = "http://localhost:8000";
+const API_URL = "http://109.73.202.54:8000";
 
 const Auth = () => {
     const [isLogin, setIsLogin] = useState(true)

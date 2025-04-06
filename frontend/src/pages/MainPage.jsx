@@ -21,7 +21,7 @@ const MainPage = () => {
     const [categories, setCategories] = useState([]);
 
     useEffect(() => {
-        axios.get("http://localhost:8000/categories/")
+        axios.get("http://109.73.202.54:8000/categories/")
             .then(res => {
                 setCategories(["Все", ...res.data]);
             })
@@ -46,7 +46,7 @@ const MainPage = () => {
     useEffect(() => {
         const fetchRecommendations = async () => {
             try {
-                const response = await fetch(`http://localhost:8000/recommendations/${username}`); // Эндпоинт для получения рекомендаций
+                const response = await fetch(`http://109.73.202.54:8000/recommendations/${username}`); // Эндпоинт для получения рекомендаций
                 if (!response.ok) throw new Error("Failed to fetch recommendations");
                 const data = await response.json();
                 setRecommendations(data);
